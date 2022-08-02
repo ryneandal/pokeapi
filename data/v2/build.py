@@ -31,7 +31,7 @@ DB_VENDOR = connection.vendor
 
 
 MEDIA_DIR = "/media/sprites/{0}"
-IMAGE_DIR = os.getcwd() + "/data/v2/sprites/sprites/"
+IMAGE_DIR = f"{os.getcwd()}/data/v2/sprites/sprites/"
 RESOURCE_IMAGES = []
 
 for root, dirs, files in os.walk(IMAGE_DIR):
@@ -49,8 +49,7 @@ def with_iter(context, iterable=None):
     if iterable is None:
         iterable = context
     with context:
-        for value in iterable:
-            yield value
+        yield from iterable
 
 
 def load_data(file_name):
@@ -63,7 +62,7 @@ def load_data(file_name):
 def clear_table(model):
     table_name = model._meta.db_table
     model.objects.all().delete()
-    print("building " + table_name)
+    print(f"building {table_name}")
     # Reset DB auto increments to start at 1
     if DB_VENDOR == "sqlite":
         DB_CURSOR.execute(
@@ -119,10 +118,7 @@ def scrub_str(string):
             sub = group[0]
         else:
             sub = group[1].split(":")
-            if len(sub) >= 2:
-                sub = sub[1]
-            else:
-                sub = sub[0]
+            sub = sub[1] if len(sub) >= 2 else sub[0]
             sub = sub.replace("-", " ")
         string = re.sub(SUB_RGX, sub, string, 1)
     return string
@@ -488,7 +484,7 @@ def _build_items():
         elif re.search(r"^hm[0-9]", info[1]):
             file_name = "hm-normal.png"
         else:
-            file_name = "%s.png" % info[1]
+            file_name = f"{info[1]}.png"
 
         item_sprites = "items/{0}"
         sprites = {"default": file_path_or_none(item_sprites.format(file_name))}
@@ -1364,18 +1360,18 @@ def _build_pokemons():
         identifier = info[1]
         species_id = info[2]
         if "-" in identifier:
-            form_file_name = "%s.%s" % (
-                species_id + "-" + identifier.split("-", 1)[1],
-                extension,
+            form_file_name = (
+                f'{f"{species_id}-" + identifier.split("-", 1)[1]}.{extension}'
             )
-            id_file_name = "%s.%s" % (pokemon_id, extension)
+
+            id_file_name = f"{pokemon_id}.{extension}"
             file_name = (
                 id_file_name
                 if file_path_or_none(path + id_file_name)
                 else form_file_name
             )
         else:
-            file_name = "%s.%s" % (info[0], extension)
+            file_name = f"{info[0]}.{extension}"
         return file_path_or_none(path + file_name)
 
     def csv_record_to_objects(info):
@@ -1393,16 +1389,26 @@ def _build_pokemons():
         gen_viii = "versions/generation-viii/"
         sprites = {
             "front_default": try_image_names(poke_sprites, info, "png"),
-            "front_female": try_image_names(poke_sprites + "female/", info, "png"),
-            "front_shiny": try_image_names(poke_sprites + "shiny/", info, "png"),
-            "front_shiny_female": try_image_names(
-                poke_sprites + "shiny/female/", info, "png"
+            "front_female": try_image_names(
+                f"{poke_sprites}female/", info, "png"
             ),
-            "back_default": try_image_names(poke_sprites + "back/", info, "png"),
-            "back_female": try_image_names(poke_sprites + "back/female/", info, "png"),
-            "back_shiny": try_image_names(poke_sprites + "back/shiny/", info, "png"),
+            "front_shiny": try_image_names(
+                f"{poke_sprites}shiny/", info, "png"
+            ),
+            "front_shiny_female": try_image_names(
+                f"{poke_sprites}shiny/female/", info, "png"
+            ),
+            "back_default": try_image_names(
+                f"{poke_sprites}back/", info, "png"
+            ),
+            "back_female": try_image_names(
+                f"{poke_sprites}back/female/", info, "png"
+            ),
+            "back_shiny": try_image_names(
+                f"{poke_sprites}back/shiny/", info, "png"
+            ),
             "back_shiny_female": try_image_names(
-                poke_sprites + "back/shiny/female/", info, "png"
+                f"{poke_sprites}back/shiny/female/", info, "png"
             ),
             "other": {
                 "dream_world": {
@@ -1414,7 +1420,9 @@ def _build_pokemons():
                     ),
                 },
                 "home": {
-                    "front_default": try_image_names(poke_sprites + home, info, "png"),
+                    "front_default": try_image_names(
+                        poke_sprites + home, info, "png"
+                    ),
                     "front_female": try_image_names(
                         poke_sprites + home + "female/", info, "png"
                     ),
@@ -1438,19 +1446,29 @@ def _build_pokemons():
                             poke_sprites + gen_i + "red-blue/", info, "png"
                         ),
                         "front_gray": try_image_names(
-                            poke_sprites + gen_i + "red-blue/gray/", info, "png"
+                            poke_sprites + gen_i + "red-blue/gray/",
+                            info,
+                            "png",
                         ),
                         "back_default": try_image_names(
-                            poke_sprites + gen_i + "red-blue/back/", info, "png"
+                            poke_sprites + gen_i + "red-blue/back/",
+                            info,
+                            "png",
                         ),
                         "back_gray": try_image_names(
-                            poke_sprites + gen_i + "red-blue/back/gray/", info, "png"
+                            poke_sprites + gen_i + "red-blue/back/gray/",
+                            info,
+                            "png",
                         ),
                         "front_transparent": try_image_names(
-                            poke_sprites + gen_i + "red-blue/transparent/", info, "png"
+                            poke_sprites + gen_i + "red-blue/transparent/",
+                            info,
+                            "png",
                         ),
                         "back_transparent": try_image_names(
-                            poke_sprites + gen_i + "red-blue/transparent/back/",
+                            poke_sprites
+                            + gen_i
+                            + "red-blue/transparent/back/",
                             info,
                             "png",
                         ),
@@ -1466,10 +1484,14 @@ def _build_pokemons():
                             poke_sprites + gen_i + "yellow/back/", info, "png"
                         ),
                         "back_gray": try_image_names(
-                            poke_sprites + gen_i + "yellow/back/gray/", info, "png"
+                            poke_sprites + gen_i + "yellow/back/gray/",
+                            info,
+                            "png",
                         ),
                         "front_transparent": try_image_names(
-                            poke_sprites + gen_i + "yellow/transparent/", info, "png"
+                            poke_sprites + gen_i + "yellow/transparent/",
+                            info,
+                            "png",
                         ),
                         "back_transparent": try_image_names(
                             poke_sprites + gen_i + "yellow/transparent/back/",
@@ -1484,29 +1506,43 @@ def _build_pokemons():
                             poke_sprites + gen_ii + "crystal/", info, "png"
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_ii + "crystal/shiny/", info, "png"
+                            poke_sprites + gen_ii + "crystal/shiny/",
+                            info,
+                            "png",
                         ),
                         "back_default": try_image_names(
-                            poke_sprites + gen_ii + "crystal/back/", info, "png"
+                            poke_sprites + gen_ii + "crystal/back/",
+                            info,
+                            "png",
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_ii + "crystal/back/shiny/", info, "png"
+                            poke_sprites + gen_ii + "crystal/back/shiny/",
+                            info,
+                            "png",
                         ),
                         "front_transparent": try_image_names(
-                            poke_sprites + gen_ii + "crystal/transparent/", info, "png"
+                            poke_sprites + gen_ii + "crystal/transparent/",
+                            info,
+                            "png",
                         ),
                         "front_shiny_transparent": try_image_names(
-                            poke_sprites + gen_ii + "crystal/transparent/shiny/",
+                            poke_sprites
+                            + gen_ii
+                            + "crystal/transparent/shiny/",
                             info,
                             "png",
                         ),
                         "back_transparent": try_image_names(
-                            poke_sprites + gen_ii + "crystal/transparent/back/",
+                            poke_sprites
+                            + gen_ii
+                            + "crystal/transparent/back/",
                             info,
                             "png",
                         ),
                         "back_shiny_transparent": try_image_names(
-                            poke_sprites + gen_ii + "crystal/transparent/back/shiny/",
+                            poke_sprites
+                            + gen_ii
+                            + "crystal/transparent/back/shiny/",
                             info,
                             "png",
                         ),
@@ -1522,10 +1558,14 @@ def _build_pokemons():
                             poke_sprites + gen_ii + "gold/back/", info, "png"
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_ii + "gold/back/shiny/", info, "png"
+                            poke_sprites + gen_ii + "gold/back/shiny/",
+                            info,
+                            "png",
                         ),
                         "front_transparent": try_image_names(
-                            poke_sprites + gen_ii + "gold/transparent/", info, "png"
+                            poke_sprites + gen_ii + "gold/transparent/",
+                            info,
+                            "png",
                         ),
                     },
                     "silver": {
@@ -1533,16 +1573,22 @@ def _build_pokemons():
                             poke_sprites + gen_ii + "silver/", info, "png"
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_ii + "silver/shiny/", info, "png"
+                            poke_sprites + gen_ii + "silver/shiny/",
+                            info,
+                            "png",
                         ),
                         "back_default": try_image_names(
                             poke_sprites + gen_ii + "silver/back/", info, "png"
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_ii + "silver/back/shiny/", info, "png"
+                            poke_sprites + gen_ii + "silver/back/shiny/",
+                            info,
+                            "png",
                         ),
                         "front_transparent": try_image_names(
-                            poke_sprites + gen_ii + "silver/transparent/", info, "png"
+                            poke_sprites + gen_ii + "silver/transparent/",
+                            info,
+                            "png",
                         ),
                     },
                 },
@@ -1552,15 +1598,21 @@ def _build_pokemons():
                             poke_sprites + gen_iii + "emerald/", info, "png"
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_iii + "emerald/shiny/", info, "png"
+                            poke_sprites + gen_iii + "emerald/shiny/",
+                            info,
+                            "png",
                         ),
                     },
                     "firered-leafgreen": {
                         "front_default": try_image_names(
-                            poke_sprites + gen_iii + "firered-leafgreen/", info, "png"
+                            poke_sprites + gen_iii + "firered-leafgreen/",
+                            info,
+                            "png",
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_iii + "firered-leafgreen/shiny/",
+                            poke_sprites
+                            + gen_iii
+                            + "firered-leafgreen/shiny/",
                             info,
                             "png",
                         ),
@@ -1570,14 +1622,18 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_iii + "firered-leafgreen/back/shiny/",
+                            poke_sprites
+                            + gen_iii
+                            + "firered-leafgreen/back/shiny/",
                             info,
                             "png",
                         ),
                     },
                     "ruby-sapphire": {
                         "front_default": try_image_names(
-                            poke_sprites + gen_iii + "ruby-sapphire/", info, "png"
+                            poke_sprites + gen_iii + "ruby-sapphire/",
+                            info,
+                            "png",
                         ),
                         "front_shiny": try_image_names(
                             poke_sprites + gen_iii + "ruby-sapphire/shiny/",
@@ -1590,7 +1646,9 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_iii + "ruby-sapphire/back/shiny/",
+                            poke_sprites
+                            + gen_iii
+                            + "ruby-sapphire/back/shiny/",
                             info,
                             "png",
                         ),
@@ -1599,7 +1657,9 @@ def _build_pokemons():
                 "generation-iv": {
                     "diamond-pearl": {
                         "front_default": try_image_names(
-                            poke_sprites + gen_iv + "diamond-pearl/", info, "png"
+                            poke_sprites + gen_iv + "diamond-pearl/",
+                            info,
+                            "png",
                         ),
                         "front_female": try_image_names(
                             poke_sprites + gen_iv + "diamond-pearl/female/",
@@ -1612,25 +1672,35 @@ def _build_pokemons():
                             "png",
                         ),
                         "front_shiny_female": try_image_names(
-                            poke_sprites + gen_iv + "diamond-pearl/shiny/female/",
+                            poke_sprites
+                            + gen_iv
+                            + "diamond-pearl/shiny/female/",
                             info,
                             "png",
                         ),
                         "back_default": try_image_names(
-                            poke_sprites + gen_iv + "diamond-pearl/back/", info, "png"
+                            poke_sprites + gen_iv + "diamond-pearl/back/",
+                            info,
+                            "png",
                         ),
                         "back_female": try_image_names(
-                            poke_sprites + gen_iv + "diamond-pearl/back/female/",
+                            poke_sprites
+                            + gen_iv
+                            + "diamond-pearl/back/female/",
                             info,
                             "png",
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_iv + "diamond-pearl/back/shiny/",
+                            poke_sprites
+                            + gen_iv
+                            + "diamond-pearl/back/shiny/",
                             info,
                             "png",
                         ),
                         "back_shiny_female": try_image_names(
-                            poke_sprites + gen_iv + "diamond-pearl/back/shiny/female/",
+                            poke_sprites
+                            + gen_iv
+                            + "diamond-pearl/back/shiny/female/",
                             info,
                             "png",
                         ),
@@ -1642,12 +1712,16 @@ def _build_pokemons():
                             "png",
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_iv + "heartgold-soulsilver/female/",
+                            poke_sprites
+                            + gen_iv
+                            + "heartgold-soulsilver/female/",
                             info,
                             "png",
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_iv + "heartgold-soulsilver/shiny/",
+                            poke_sprites
+                            + gen_iv
+                            + "heartgold-soulsilver/shiny/",
                             info,
                             "png",
                         ),
@@ -1659,17 +1733,23 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_default": try_image_names(
-                            poke_sprites + gen_iv + "heartgold-soulsilver/back/",
+                            poke_sprites
+                            + gen_iv
+                            + "heartgold-soulsilver/back/",
                             info,
                             "png",
                         ),
                         "back_female": try_image_names(
-                            poke_sprites + gen_iv + "heartgold-soulsilver/back/female/",
+                            poke_sprites
+                            + gen_iv
+                            + "heartgold-soulsilver/back/female/",
                             info,
                             "png",
                         ),
                         "back_shiny": try_image_names(
-                            poke_sprites + gen_iv + "heartgold-soulsilver/back/shiny/",
+                            poke_sprites
+                            + gen_iv
+                            + "heartgold-soulsilver/back/shiny/",
                             info,
                             "png",
                         ),
@@ -1686,10 +1766,14 @@ def _build_pokemons():
                             poke_sprites + gen_iv + "platinum/", info, "png"
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_iv + "platinum/female/", info, "png"
+                            poke_sprites + gen_iv + "platinum/female/",
+                            info,
+                            "png",
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_iv + "platinum/shiny/", info, "png"
+                            poke_sprites + gen_iv + "platinum/shiny/",
+                            info,
+                            "png",
                         ),
                         "front_shiny_female": try_image_names(
                             poke_sprites + gen_iv + "platinum/shiny/female/",
@@ -1697,7 +1781,9 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_default": try_image_names(
-                            poke_sprites + gen_iv + "platinum/back/", info, "png"
+                            poke_sprites + gen_iv + "platinum/back/",
+                            info,
+                            "png",
                         ),
                         "back_female": try_image_names(
                             poke_sprites + gen_iv + "platinum/back/female/",
@@ -1710,7 +1796,9 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_shiny_female": try_image_names(
-                            poke_sprites + gen_iv + "platinum/back/shiny/female/",
+                            poke_sprites
+                            + gen_iv
+                            + "platinum/back/shiny/female/",
                             info,
                             "png",
                         ),
@@ -1722,10 +1810,14 @@ def _build_pokemons():
                             poke_sprites + gen_v + "black-white/", info, "png"
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_v + "black-white/female/", info, "png"
+                            poke_sprites + gen_v + "black-white/female/",
+                            info,
+                            "png",
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_v + "black-white/shiny/", info, "png"
+                            poke_sprites + gen_v + "black-white/shiny/",
+                            info,
+                            "png",
                         ),
                         "front_shiny_female": try_image_names(
                             poke_sprites + gen_v + "black-white/shiny/female/",
@@ -1733,7 +1825,9 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_default": try_image_names(
-                            poke_sprites + gen_v + "black-white/back/", info, "png"
+                            poke_sprites + gen_v + "black-white/back/",
+                            info,
+                            "png",
                         ),
                         "back_female": try_image_names(
                             poke_sprites + gen_v + "black-white/back/female/",
@@ -1746,7 +1840,9 @@ def _build_pokemons():
                             "png",
                         ),
                         "back_shiny_female": try_image_names(
-                            poke_sprites + gen_v + "black-white/back/shiny/female/",
+                            poke_sprites
+                            + gen_v
+                            + "black-white/back/shiny/female/",
                             info,
                             "png",
                         ),
@@ -1757,12 +1853,16 @@ def _build_pokemons():
                                 "gif",
                             ),
                             "front_female": try_image_names(
-                                poke_sprites + gen_v + "black-white/animated/female/",
+                                poke_sprites
+                                + gen_v
+                                + "black-white/animated/female/",
                                 info,
                                 "gif",
                             ),
                             "front_shiny": try_image_names(
-                                poke_sprites + gen_v + "black-white/animated/shiny/",
+                                poke_sprites
+                                + gen_v
+                                + "black-white/animated/shiny/",
                                 info,
                                 "gif",
                             ),
@@ -1774,7 +1874,9 @@ def _build_pokemons():
                                 "gif",
                             ),
                             "back_default": try_image_names(
-                                poke_sprites + gen_v + "black-white/animated/back/",
+                                poke_sprites
+                                + gen_v
+                                + "black-white/animated/back/",
                                 info,
                                 "gif",
                             ),
@@ -1810,12 +1912,16 @@ def _build_pokemons():
                             "png",
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_vi + "omegaruby-alphasapphire/female/",
+                            poke_sprites
+                            + gen_vi
+                            + "omegaruby-alphasapphire/female/",
                             info,
                             "png",
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_vi + "omegaruby-alphasapphire/shiny/",
+                            poke_sprites
+                            + gen_vi
+                            + "omegaruby-alphasapphire/shiny/",
                             info,
                             "png",
                         ),
@@ -1838,7 +1944,9 @@ def _build_pokemons():
                             poke_sprites + gen_vi + "x-y/shiny/", info, "png"
                         ),
                         "front_shiny_female": try_image_names(
-                            poke_sprites + gen_vi + "x-y/shiny/female/", info, "png"
+                            poke_sprites + gen_vi + "x-y/shiny/female/",
+                            info,
+                            "png",
                         ),
                     },
                 },
@@ -1850,12 +1958,16 @@ def _build_pokemons():
                             "png",
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_vii + "ultra-sun-ultra-moon/female/",
+                            poke_sprites
+                            + gen_vii
+                            + "ultra-sun-ultra-moon/female/",
                             info,
                             "png",
                         ),
                         "front_shiny": try_image_names(
-                            poke_sprites + gen_vii + "ultra-sun-ultra-moon/shiny/",
+                            poke_sprites
+                            + gen_vii
+                            + "ultra-sun-ultra-moon/shiny/",
                             info,
                             "png",
                         ),
@@ -1872,7 +1984,9 @@ def _build_pokemons():
                             poke_sprites + gen_vii + "icons/", info, "png"
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_vii + "icons/female/", info, "png"
+                            poke_sprites + gen_vii + "icons/female/",
+                            info,
+                            "png",
                         ),
                     },
                 },
@@ -1882,12 +1996,15 @@ def _build_pokemons():
                             poke_sprites + gen_viii + "icons/", info, "png"
                         ),
                         "front_female": try_image_names(
-                            poke_sprites + gen_viii + "icons/female/", info, "png"
+                            poke_sprites + gen_viii + "icons/female/",
+                            info,
+                            "png",
                         ),
                     },
                 },
             },
         }
+
         yield PokemonSprites(
             id=int(info[0]),
             pokemon=Pokemon.objects.get(pk=int(info[0])),
@@ -1971,8 +2088,8 @@ def _build_pokemons():
         species_id = getattr(pokemon, "pokemon_species_id")
         is_default = int(info[5])
         if form_identifier:
-            form_file_name = "%s-%s.%s" % (species_id, form_identifier, extension)
-            id_file_name = "%s.%s" % (pokemon_id, extension)
+            form_file_name = f"{species_id}-{form_identifier}.{extension}"
+            id_file_name = f"{pokemon_id}.{extension}"
             file_name = (
                 id_file_name
                 if file_path_or_none(path + id_file_name)
@@ -1981,25 +2098,36 @@ def _build_pokemons():
             if id_file_name and form_file_name and (not is_default):
                 file_name = form_file_name
         else:
-            file_name = "%s.%s" % (species_id, extension)
+            file_name = f"{species_id}.{extension}"
         return file_path_or_none(path + file_name)
 
     def csv_record_to_objects(info):
         poke_sprites = "pokemon/"
         sprites = {
             "front_default": try_image_names(poke_sprites, info, "png"),
-            "front_shiny": try_image_names(poke_sprites + "shiny/", info, "png"),
-            "back_default": try_image_names(poke_sprites + "back/", info, "png"),
-            "back_shiny": try_image_names(poke_sprites + "back/shiny/", info, "png"),
-            "front_female": try_image_names(poke_sprites + "female/", info, "png"),
-            "front_shiny_female": try_image_names(
-                poke_sprites + "shiny/female/", info, "png"
+            "front_shiny": try_image_names(
+                f"{poke_sprites}shiny/", info, "png"
             ),
-            "back_female": try_image_names(poke_sprites + "back/female/", info, "png"),
+            "back_default": try_image_names(
+                f"{poke_sprites}back/", info, "png"
+            ),
+            "back_shiny": try_image_names(
+                f"{poke_sprites}back/shiny/", info, "png"
+            ),
+            "front_female": try_image_names(
+                f"{poke_sprites}female/", info, "png"
+            ),
+            "front_shiny_female": try_image_names(
+                f"{poke_sprites}shiny/female/", info, "png"
+            ),
+            "back_female": try_image_names(
+                f"{poke_sprites}back/female/", info, "png"
+            ),
             "back_shiny_female": try_image_names(
-                poke_sprites + "back/shiny/female/", info, "png"
+                f"{poke_sprites}back/shiny/female/", info, "png"
             ),
         }
+
         yield PokemonFormSprites(
             id=int(info[0]), pokemon_form_id=int(info[0]), sprites=json.dumps(sprites)
         )

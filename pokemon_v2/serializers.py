@@ -633,12 +633,7 @@ class RegionDetailSerializer(serializers.ModelSerializer):
         data = VersionGroupRegionSerializer(
             vg_regions, many=True, context=self.context
         ).data
-        groups = []
-
-        for group in data:
-            groups.append(group["version_group"])
-
-        return groups
+        return [group["version_group"] for group in data]
 
 
 ############################
@@ -899,12 +894,7 @@ class EncounterDetailSerializer(serializers.ModelSerializer):
         data = EncounterConditionValueMapSerializer(
             condition_values, many=True, context=self.context
         ).data
-        values = []
-
-        for map in data:
-            values.append(map["condition_value"])
-
-        return values
+        return [map["condition_value"] for map in data]
 
 
 class LocationAreaEncounterRateSerializer(serializers.ModelSerializer):
@@ -1501,9 +1491,10 @@ class ItemDetailSerializer(serializers.ModelSerializer):
 
         for key in sprites_data:
             if sprites_data[key]:
-                sprites_data[key] = (
-                    "https://" + host + sprites_data[key].replace("/media/", "")
+                sprites_data[key] = f"https://{host}" + sprites_data[key].replace(
+                    "/media/", ""
                 )
+
 
         return sprites_data
 
@@ -1776,11 +1767,7 @@ class EggGroupDetailSerializer(serializers.ModelSerializer):
 
         results = PokemonEggGroup.objects.filter(egg_group=obj)
         data = PokemonEggGroupSerializer(results, many=True, context=self.context).data
-        associated_species = []
-        for species in data:
-            associated_species.append(species["species"])
-
-        return associated_species
+        return [species["species"] for species in data]
 
 
 ######################
@@ -1857,15 +1844,17 @@ class TypeDetailSerializer(serializers.ModelSerializer):
     # factor in the given direction to the set of relations
     def add_type_entry(self, relations, type, damage_factor, direction="_damage_to"):
         if damage_factor == 200:
-            relations["double" + direction].append(
+            relations[f"double{direction}"].append(
                 TypeSummarySerializer(type, context=self.context).data
             )
+
         elif damage_factor == 50:
-            relations["half" + direction].append(
+            relations[f"half{direction}"].append(
                 TypeSummarySerializer(type, context=self.context).data
             )
+
         elif damage_factor == 0:
-            relations["no" + direction].append(
+            relations[f"no{direction}"].append(
                 TypeSummarySerializer(type, context=self.context).data
             )
 
@@ -2683,9 +2672,10 @@ class PokemonFormDetailSerializer(serializers.ModelSerializer):
 
         for key in sprites_data:
             if sprites_data[key]:
-                sprites_data[key] = (
-                    "https://" + host + sprites_data[key].replace("/media/", "")
+                sprites_data[key] = f"https://{host}" + sprites_data[key].replace(
+                    "/media/", ""
                 )
+
 
         return sprites_data
 
@@ -2786,12 +2776,7 @@ class MoveLearnMethodDetailSerializer(serializers.ModelSerializer):
         version_group_data = VersionGroupMoveLearnMethodSerializer(
             version_group_objects, many=True, context=self.context
         ).data
-        groups = []
-
-        for vg in version_group_data:
-            groups.append(vg["version_group"])
-
-        return groups
+        return [vg["version_group"] for vg in version_group_data]
 
 
 # https://stackoverflow.com/a/45987450/3482533
@@ -2953,7 +2938,7 @@ class PokemonDetailSerializer(serializers.ModelSerializer):
                     replace_sprite_url(value)
                 else:
                     if d[key]:
-                        d[key] = "https://" + host + d[key].replace("/media/", "")
+                        d[key] = f"https://{host}" + d[key].replace("/media/", "")
 
         replace_sprite_url(sprites_data)
 
@@ -3092,10 +3077,8 @@ class PokemonDetailSerializer(serializers.ModelSerializer):
             generation = poke_past_type["generation"]["name"]
             if generation != current_generation:
                 current_generation = generation
-                past_obj = {}
+                past_obj = {"generation": poke_past_type["generation"]}
 
-                # create past types object for this generation
-                past_obj["generation"] = poke_past_type["generation"]
                 del poke_past_type["generation"]
 
                 # create types array
@@ -3285,11 +3268,7 @@ class PokemonSpeciesDetailSerializer(serializers.ModelSerializer):
 
         results = PokemonEggGroup.objects.filter(pokemon_species=obj)
         data = PokemonEggGroupSerializer(results, many=True, context=self.context).data
-        groups = []
-        for group in data:
-            groups.append(group["egg_group"])
-
-        return groups
+        return [group["egg_group"] for group in data]
 
     def get_pokemon_varieties(self, obj):
 
@@ -3388,10 +3367,7 @@ class EvolutionChainDetailSerializer(serializers.ModelSerializer):
         # convert evolution data list to tree
         evolution_tree = self.build_evolution_tree(ref_data)
 
-        # serialize chain recursively from tree
-        chain = self.build_chain_link_entry(evolution_tree, summary_data)
-
-        return chain
+        return self.build_chain_link_entry(evolution_tree, summary_data)
 
     # converts a list of Pokemon species evolution data into a tree representing the evolution chain
     def build_evolution_tree(self, species_evolution_data):
@@ -3410,7 +3386,7 @@ class EvolutionChainDetailSerializer(serializers.ModelSerializer):
             parent_link = evolution_tree
             search_stack = [parent_link]
 
-            while len(search_stack) > 0:
+            while search_stack:
                 l = search_stack.pop()
                 if l["species"]["id"] == evolves_from_species_id:
                     parent_link = l
@@ -3571,12 +3547,7 @@ class PokedexDetailSerializer(serializers.ModelSerializer):
         dex_groups = PokedexVersionGroupSerializer(
             dex_group_objects, many=True, context=self.context
         ).data
-        results = []
-
-        for dex_group in dex_groups:
-            results.append(dex_group["version_group"])
-
-        return results
+        return [dex_group["version_group"] for dex_group in dex_groups]
 
 
 #########################
@@ -3633,12 +3604,7 @@ class VersionGroupDetailSerializer(serializers.ModelSerializer):
         data = VersionGroupRegionSerializer(
             vg_regions, many=True, context=self.context
         ).data
-        regions = []
-
-        for region in data:
-            regions.append(region["region"])
-
-        return regions
+        return [region["region"] for region in data]
 
     def get_learn_methods(self, obj):
 
@@ -3648,12 +3614,7 @@ class VersionGroupDetailSerializer(serializers.ModelSerializer):
         learn_method_data = VersionGroupMoveLearnMethodSerializer(
             learn_method_objects, many=True, context=self.context
         ).data
-        methods = []
-
-        for method in learn_method_data:
-            methods.append(method["move_learn_method"])
-
-        return methods
+        return [method["move_learn_method"] for method in learn_method_data]
 
     def get_version_groups_pokedexes(self, obj):
 
@@ -3661,9 +3622,4 @@ class VersionGroupDetailSerializer(serializers.ModelSerializer):
         dex_groups = PokedexVersionGroupSerializer(
             dex_group_objects, many=True, context=self.context
         ).data
-        results = []
-
-        for dex_group in dex_groups:
-            results.append(dex_group["pokedex"])
-
-        return results
+        return [dex_group["pokedex"] for dex_group in dex_groups]
